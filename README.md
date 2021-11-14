@@ -1,145 +1,66 @@
-# CarND-Path-Planning-Project
-Self-Driving Car Engineer Nanodegree Program
+# CarND-Path-Planning-Project - Highway Driving
+
+## Overview 
+The goal of this project is to design a path planning algorithm to drive car on a ~ 4-mile stretch of a highway on a Udacity simulator. The simulator sends position and speed coordinates of other cars on the road and in return, it expects a set of x,y points that represents car’s trajectory spaced at 0.02s
    
-### Simulator.
-You can download the Term3 Simulator which contains the Path Planning Project from the [releases tab (https://github.com/udacity/self-driving-car-sim/releases/tag/T3_v1.2).  
+## Code Requirements 
+* Code compilation without errors
+* Car is able to drive at least 4.32 miles without errors – I tested the algorithm on the simulator for more than 5 miles and recorded no errors
+* The car drives according to speed limit – Max speed limit of car is set to 49.5 mph as suggested in Q&A video. The car drives around that speed when no slow moving traffic is in the vicinity. When slow moving vehicle is in front, the car slows down or changes lane depending on the cars in adjacent lanes
+* Max acceleration and jerk are not exceeded – Car is set to increase speed by 0.224mph as suggested in the Q&A video, this keeps the acceleration of the car around 5m/s2 which is below the max acceleration limit of 10m/s2. As a result, max acceleration and jerk limits are not exceeded throughout the drive.
+* Car does not have collisions – Car does not have any collision with any other vehicle on the road because a logic for lane changing or slowdown is implemented in the code that is dependent on where are the cars in adjacent lanes located
+* Car stays in the lane except for the time between changing lanes – car stays in the lane as long as there is no vehicle within 30m in the front. If the front vehicle is too close, then it looks for an opportunity to change lanes. If lane changing is not possible, then the car slows down until vehicle in front is at a safe distance.
+* The car is able to change lanes – the car changes lanes if there is a vehicle in front of the car and it is safe to change lanes.
 
-To run the simulator on Mac/Linux, first make the binary file executable with the following command:
-```shell
-sudo chmod u+x {simulator_file_name}
-```
+## Path Planning Algorithm
+Path planning algorithm is implemented in the main.cpp from lines 114 to 339. Main logic to drive car on the highway while meeting criteria listed above is implemented in following steps
+1. Cold start (lines 63-71) –
+* Initialize current lane of the car (lane) as 1 and initial velocity (ref_val) as zero. Then slowly increase speed of the car by 0.224mph until its speed is lower than 49.5mph.
+ ![7](https://user-images.githubusercontent.com/59345845/141700342-9171efac-a130-46a4-a7d5-cf4927d43577.JPG)
 
-### Goals
-In this project your goal is to safely navigate around a virtual highway with other traffic that is driving +-10 MPH of the 50 MPH speed limit. You will be provided the car's localization and sensor fusion data, there is also a sparse map list of waypoints around the highway. The car should try to go as close as possible to the 50 MPH speed limit, which means passing slower traffic when possible, note that other cars will try to change lanes too. The car should avoid hitting other cars at all cost as well as driving inside of the marked road lanes at all times, unless going from one lane to another. The car should be able to make one complete loop around the 6946m highway. Since the car is trying to go 50 MPH, it should take a little over 5 minutes to complete 1 loop. Also the car should not experience total acceleration over 10 m/s^2 and jerk that is greater than 10 m/s^3.
+   ![1](https://user-images.githubusercontent.com/59345845/141699959-3d185ed7-b31d-4670-8b3c-8dfc8e5f0cfa.JPG)
 
-#### The map of the highway is in data/highway_map.txt
-Each waypoint in the list contains  [x,y,s,dx,dy] values. x and y are the waypoint's map coordinate position, the s value is the distance along the road to get to that waypoint in meters, the dx and dy values define the unit normal vector pointing outward of the highway loop.
-
-The highway's waypoints loop around so the frenet s value, distance along the road, goes from 0 to 6945.554.
-
-## Basic Build Instructions
-
-1. Clone this repo.
-2. Make a build directory: `mkdir build && cd build`
-3. Compile: `cmake .. && make`
-4. Run it: `./path_planning`.
-
-Here is the data provided from the Simulator to the C++ Program
-
-#### Main car's localization Data (No Noise)
-
-["x"] The car's x position in map coordinates
-
-["y"] The car's y position in map coordinates
-
-["s"] The car's s position in frenet coordinates
-
-["d"] The car's d position in frenet coordinates
-
-["yaw"] The car's yaw angle in the map
-
-["speed"] The car's speed in MPH
-
-#### Previous path data given to the Planner
-
-//Note: Return the previous list but with processed points removed, can be a nice tool to show how far along
-the path has processed since last time. 
-
-["previous_path_x"] The previous list of x points previously given to the simulator
-
-["previous_path_y"] The previous list of y points previously given to the simulator
-
-#### Previous path's end s and d values 
-
-["end_path_s"] The previous list's last point's frenet s value
-
-["end_path_d"] The previous list's last point's frenet d value
-
-#### Sensor Fusion Data, a list of all other car's attributes on the same side of the road. (No Noise)
-
-["sensor_fusion"] A 2d vector of cars and then that car's [car's unique ID, car's x position in map coordinates, car's y position in map coordinates, car's x velocity in m/s, car's y velocity in m/s, car's s position in frenet coordinates, car's d position in frenet coordinates. 
-
-## Details
-
-1. The car uses a perfect controller and will visit every (x,y) point it recieves in the list every .02 seconds. The units for the (x,y) points are in meters and the spacing of the points determines the speed of the car. The vector going from a point to the next point in the list dictates the angle of the car. Acceleration both in the tangential and normal directions is measured along with the jerk, the rate of change of total Acceleration. The (x,y) point paths that the planner recieves should not have a total acceleration that goes over 10 m/s^2, also the jerk should not go over 50 m/s^3. (NOTE: As this is BETA, these requirements might change. Also currently jerk is over a .02 second interval, it would probably be better to average total acceleration over 1 second and measure jerk from that.
-
-2. There will be some latency between the simulator running and the path planner returning a path, with optimized code usually its not very long maybe just 1-3 time steps. During this delay the simulator will continue using points that it was last given, because of this its a good idea to store the last points you have used so you can have a smooth transition. previous_path_x, and previous_path_y can be helpful for this transition since they show the last points given to the simulator controller with the processed points already removed. You would either return a path that extends this previous path or make sure to create a new path that has a smooth transition with this last path.
-
-## Tips
-
-A really helpful resource for doing this project and creating smooth trajectories was using http://kluge.in-chemnitz.de/opensource/spline/, the spline function is in a single hearder file is really easy to use.
-
----
-
-## Dependencies
-
-* cmake >= 3.5
-  * All OSes: [click here for installation instructions](https://cmake.org/install/)
-* make >= 4.1
-  * Linux: make is installed by default on most Linux distros
-  * Mac: [install Xcode command line tools to get make](https://developer.apple.com/xcode/features/)
-  * Windows: [Click here for installation instructions](http://gnuwin32.sourceforge.net/packages/make.htm)
-* gcc/g++ >= 5.4
-  * Linux: gcc / g++ is installed by default on most Linux distros
-  * Mac: same deal as make - [install Xcode command line tools]((https://developer.apple.com/xcode/features/)
-  * Windows: recommend using [MinGW](http://www.mingw.org/)
-* [uWebSockets](https://github.com/uWebSockets/uWebSockets)
-  * Run either `install-mac.sh` or `install-ubuntu.sh`.
-  * If you install from source, checkout to commit `e94b6e1`, i.e.
-    ```
-    git clone https://github.com/uWebSockets/uWebSockets 
-    cd uWebSockets
-    git checkout e94b6e1
-    ```
-
-## Editor Settings
-
-We've purposefully kept editor configuration files out of this repo in order to
-keep it as simple and environment agnostic as possible. However, we recommend
-using the following settings:
-
-* indent using spaces
-* set tab width to 2 spaces (keeps the matrices in source code aligned)
-
-## Code Style
-
-Please (do your best to) stick to [Google's C++ style guide](https://google.github.io/styleguide/cppguide.html).
-
-## Project Instructions and Rubric
-
-Note: regardless of the changes you make, your project must be buildable using
-cmake and make!
+2. Detecting cars in the all three lanes (lines 132-197)
+* For every car in the sensor fusion list, define the car’s lane (car_lane) depending upon distance d from the center
+      * 0<d<4 = car_lane, 0
+      * 4<d<8 = car_lane, 1
+      * 8<d<12 = car_lane, 2
+* From the data in the sensor fusion list, extract x and y speed of the car (vx and vy), calculate absolute speed of every car and save it in variable check_speed. This is used in predicting where the car will be in future
+* Save Frenet coordinate s for every car in check_car_s. This is used to check if the car is too close to us in the same lane or when changing lanes. If using previous points, we can project s value outward in time.
+* In this section, we define three scenarios
+      * If the car in the list is in my lane (this is identified based on the Frenet coordinate d of the car), and it is in front (this is done when check_car_s >car_s), and the distance is less than 30m. – then this car is too close to our car and we set the variable too_close to true.
+      * If the car is in the left lane (identified based on d), and its within 30m of my car’s position in either front or rear (i.e. distance between my car and the car in left lane is less than 30m) – then this car_left_lane flag is set to true
+      * If the car is in the right lane (identified based on d), and its within 30m of my car’s position in either front or rear (i.e. distance between my car and the car in left lane is less than 30m) – then this car_right_lane flag is set to true
+      
+![2](https://user-images.githubusercontent.com/59345845/141700084-2cb5027c-0a20-46fb-ac78-637a3b1627d2.JPG)
 
 
-## Call for IDE Profiles Pull Requests
+  ![3](https://user-images.githubusercontent.com/59345845/141700111-fa1e9088-21dd-406b-b170-bcd44c7c8858.JPG)
 
-Help your fellow students!
 
-We decided to create Makefiles with cmake to keep this project as platform
-agnostic as possible. Similarly, we omitted IDE profiles in order to ensure
-that students don't feel pressured to use one IDE or another.
+3. Actions based on car’s position –
+The logic is set such that the car will only change its planned trajectory if the flag too_close is true in the earlier part of the code.
+* If the car in front is too close in the current lane and there is not car within 30m in the right lane and the car is not in the rightmost lane – then the car is moved to adjacent right lane by incrementing lane by 1
+* If the car in front is too close in the current lane and there is not car within 30m in the left lane and the car is not in the leftmost lane – then the car is moved to adjacent left lane by decrementing lane by 1
+* If both the conditions are not true, then the car stays in the same lane but gradually decreases its speed so as to not collide with the car in front.
+* Irrespective of the lane, when the car’s speed is less than 49.5mph reference speed, it is gradually increased so that the car drives at the recommended highway speed of 50mph for most part of the highway
 
-However! I'd love to help people get up and running with their IDEs of choice.
-If you've created a profile for an IDE that you think other students would
-appreciate, we'd love to have you add the requisite profile files and
-instructions to ide_profiles/. For example if you wanted to add a VS Code
-profile, you'd add:
+![5](https://user-images.githubusercontent.com/59345845/141700152-a2438794-43e1-4336-b094-c3fcd044ac17.JPG)
 
-* /ide_profiles/vscode/.vscode
-* /ide_profiles/vscode/README.md
+4. Trajectory planning (lines 222 to 337)
+* This part of the code forms a trajectory for the car to follow, using spline.h function, calculated lane and speed of the car calculated in the previous section of the code.
+* As a starting position, we take two points that are tangent to the car’s current position or last two points from car’s previous trajectory along with three points 30m apart in the distance to create a spline.
+* This calculation is performed by converting all Cartesian coordinates into car’s local
+coordinates o Spline.h is used to calculate closely spaced points in these five points. These points are transformed back into Cartesian coordinates
+* The speed change calculated in the previous part of the code is used in this section to increase or decrease the speed of the car on every trajectory points
+* For a continuous trajectory, past trajectory points are continued to the new trajectory
 
-The README should explain what the profile does, how to take advantage of it,
-and how to install it.
 
-Frankly, I've never been involved in a project with multiple IDE profiles
-before. I believe the best way to handle this would be to keep them out of the
-repo root to avoid clutter. My expectation is that most profiles will include
-instructions to copy files to a new location to get picked up by the IDE, but
-that's just a guess.
+![6](https://user-images.githubusercontent.com/59345845/141700189-71982478-4c59-4316-b3a7-56e6a87e89d7.JPG)
 
-One last note here: regardless of the IDE used, every submitted project must
-still be compilable with cmake and make./
 
-## How to write a README
-A well written README file can enhance your project and portfolio.  Develop your abilities to create professional README files by completing [this free course](https://www.udacity.com/course/writing-readmes--ud777).
+![7](https://user-images.githubusercontent.com/59345845/141700348-0496b0a4-cd3e-4a3d-8dc7-411fdc1ad08d.JPG)
+
+
+![8](https://user-images.githubusercontent.com/59345845/141700354-6b4a74f7-04cb-4928-b0ae-8199b893562b.JPG)
 
